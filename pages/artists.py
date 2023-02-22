@@ -11,6 +11,7 @@ db = db_connect()
 ###### Selecting all rows from the artist table in the database ##########
 
 artist_db = db.q("""SELECT * FROM artist""")
+artist_num = len(artist_db)
 
 ############ Seperating artists into male and female #############
 male_artists = artist_db[artist_db['gender'] == 'Male']
@@ -27,8 +28,6 @@ fig1 = px.pie(values=m_f_artists, names=m_f_list, title='Proportion of artist ge
 
 artist_nationality = artist_db.groupby('nationality').count()
 
-artist_nationality
-
 ########## producing bar graph based on nationality ###################
 
 nationality_quantity = px.bar(
@@ -38,6 +37,12 @@ nationality_quantity = px.bar(
                     color=artist_nationality.index,
                     )
 
+################ Creating a joined table which has department attached to each artist
+artist_dep_db = db.q("""SELECT t1.*, t2.department FROM artist AS t1
+            JOIN artwork AS t2
+            ON t1.artist_id = t2.artist_id
+            """)
+artist_dep_db = artist_dep_db.drop_duplicates(subset='artist_name', keep="last")
 
 dash.register_page(__name__)
 
@@ -51,7 +56,7 @@ layout = html.Div(
                     id='header_title',
                 ),
                 html.P(
-                    children="Analysis of the Toothbrush Purchasing Habits of Different Age Groups",
+                    children=f"There are currently {artist_num} artists who have worked on artworks in the collection",
                     className='header-description',
                 ),
             ], 
