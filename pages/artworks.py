@@ -55,12 +55,44 @@ layout = html.Div(
         dbc.Card(
             [
                 dbc.CardBody(
-                    children=[dcc.Graph(
+                    children=[html.Div(
+                    children=[
+                        html.Div(children="Department", className="menu-title"),
+                        dcc.Dropdown(
+                            id="chart-filter",
+                            options=[
+                                {"label": "Bar", "value": "bar"}, {"label":"Pie", "value": "pie"}
+                            ],
+                            value="bar",
+                            clearable=False,
+                            className="dropdown",
+                        ),
+                    ], 
+                    className="dropdown-div"
+                ),
+                html.Div(
+                    children=[
+                        html.Div(children="Date range", className="menu-title"),
+                        dcc.Dropdown(
+                            id="chart-filter2",
+                            options=[
+                                {"label": "Bar", "value": "bar"}, {"label":"Pie", "value": "pie"}
+                            ],
+                            value="bar",
+                            clearable=False,
+                            className="dropdown2",
+                        ),
+                    ], 
+                    className="dropdown-div2"
+                ),
+                
+                dcc.Graph(
                         id='artwork_gender',
                         figure=fig,
                         className='card-header'
                     ),
-                    html.P('Note that an artist may work on more than one piece hence why proportion may not sum to current number of artworks')]
+                    html.P('Note that an artist may work on more than one piece hence why proportion may not sum to current number of artworks')
+                    ]
                 ), 
 
                 dbc.CardHeader(
@@ -73,11 +105,40 @@ layout = html.Div(
         dbc.Card(
             [
                 dbc.CardBody(
-                    children=dcc.Graph(
-                        id='artwork_nationality',
-                        figure=nationality_quantity
-                    )
+                    children=[
+                        html.Div(children=[
+                        html.Div(children="Department", className="menu-title"),
+                        dcc.Dropdown(
+                            id="chart-filter",
+                            options=[
+                                {"label": "Bar", "value": "bar"}, {"label":"Pie", "value": "pie"}
+                            ],
+                            value="bar",
+                            clearable=False,
+                            className="dropdown3",
+                        ),
+                    ], 
+                    className="dropdown-div3"
                 ),
+                html.Div(
+                    children=[
+                        html.Div(children="Date range", className="menu-title"),
+                        dcc.Dropdown(
+                            id="chart-filter2",
+                            options=[
+                                {"label": "Bar", "value": "bar"}, {"label":"Pie", "value": "pie"}
+                            ],
+                            value="bar",
+                            clearable=False,
+                            className="dropdown4",
+                        ),
+                    ], 
+                    className="dropdown-div4"
+                ),
+                dcc.Graph(
+                id='artwork_nationality',
+                figure=nationality_quantity
+            ), ]),
 
                 dbc.CardHeader(
                     id='artwork-nationality-card-header'

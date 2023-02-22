@@ -66,11 +66,38 @@ layout = html.Div(
         dbc.Card(
             [
                 dbc.CardBody(
-                    children=dcc.Graph(
+                    children=[html.Div(children=[
+                        html.Div(children="Department", className="menu-title"),
+                        dcc.Dropdown(
+                            id="chart-filter",
+                            options=[
+                                {"label": "Bar", "value": "bar"}, {"label":"Pie", "value": "pie"}
+                            ],
+                            value="bar",
+                            clearable=False,
+                            className="dropdown6",
+                        ),
+                    ], 
+                    className="dropdown-div6"
+                ),html.Div(
+                    children=[
+                        html.Div(children="Date range", className="menu-title"),
+                        dcc.Dropdown(
+                            id="chart-filter2",
+                            options=[
+                                {"label": "Bar", "value": "bar"}, {"label":"Pie", "value": "pie"}
+                            ],
+                            value="bar",
+                            clearable=False,
+                            className="dropdown7",
+                        ),
+                    ], 
+                    className="dropdown-div7"
+                ),dcc.Graph(
                         id='artist_gender',
                         figure=fig1
                     )
-                ),
+            ]),
 
                 dbc.CardHeader(
                     id='artist_gender-card-header'
@@ -81,11 +108,38 @@ layout = html.Div(
         dbc.Card(
             [
                 dbc.CardBody(
-                    children=dcc.Graph(
+                    children=[html.Div(children=[
+                        html.Div(children="Department", className="menu-title"),
+                        dcc.Dropdown(
+                            id="chart-filter",
+                            options=[
+                                {"label": "Bar", "value": "bar"}, {"label":"Pie", "value": "pie"}
+                            ],
+                            value="bar",
+                            clearable=False,
+                            className="dropdown7",
+                        ),
+                    ], 
+                    className="dropdown-div7"
+                ),html.Div(
+                    children=[
+                        html.Div(children="Date range", className="menu-title"),
+                        dcc.Dropdown(
+                            id="chart-filter2",
+                            options=[
+                                {"label": "Bar", "value": "bar"}, {"label":"Pie", "value": "pie"}
+                            ],
+                            value="bar",
+                            clearable=False,
+                            className="dropdown8",
+                        ),
+                    ], 
+                    className="dropdown-div8"
+                ),dcc.Graph(
                         id='artist_gender',
                         figure=nationality_quantity
                     )
-                ),
+            ]),
 
                 dbc.CardHeader(
                     id='artist_gender-card-header'
