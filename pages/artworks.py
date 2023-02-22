@@ -13,26 +13,15 @@ db = db_connect()
 no_untitled = db.q("""SELECT * FROM artwork WHERE title NOT LIKE '%Untitled%'""")
 artwork_number = len(no_untitled.drop_duplicates(subset='title', keep="last"))
 artist_db = db.q("""SELECT * FROM artist""")
-artwork_demographs = no_untitled.merge(artist_db[['artist_id','nationality','gender', 'year_start', 'year_end']], on='artist_id', how="left")
+no_untitled_dup = no_untitled.drop_duplicates(subset=['title', 'artist_id'], keep="last")
+artwork_demographs = no_untitled_dup.merge(artist_db[['artist_id','nationality','gender', 'year_start', 'year_end']], on='artist_id', how="left")
 
-
-male_artists = artwork_demographs[artwork_demographs['gender'] == 'Male']
-female_artists = artwork_demographs[artwork_demographs['gender'] == 'Female']
-m_f_list = ['Male', 'Female']
-
-m_f_artists = [len(male_artists), len(female_artists)]
-fig = px.pie(values=m_f_artists, names=m_f_list, title='Proportion of artwork by gender')
+## creating a list of all the distinct departments
+departments = db.q("SELECT DISTINCT department from artwork")
+department_vals = [{"label":str(i[0]), "value":str(i[0])} for i in departments.values]
+department_vals.append({"label":"All departments", "value":"All departments"})
 
 ### Artworks created by nationality
-
-artist_nationality = artwork_demographs.groupby('nationality').count()
-
-nationality_quantity = px.bar(
-                    artist_nationality,
-                    x=artist_nationality.index,
-                    y='artwork_id', 
-                    color=artist_nationality.index
-                )
 
 
 layout = html.Div(
@@ -51,15 +40,26 @@ layout = html.Div(
             ], 
             className='page-header'
         ),
-
-        dbc.Card(
-            [
-                dbc.CardBody(
-                    children=[html.Div(
-                    children=[
+        html.Div(
+            children=[
                         html.Div(children="Department", className="menu-title"),
                         dcc.Dropdown(
-                            id="chart-filter",
+                            id="department-filter1",
+                            options=
+                                department_vals
+                            ,
+                            value="All departments",
+                            clearable=False,
+                            className="dropdown",
+                        ),
+                    ], 
+                    className="dropdown-div2"
+                ),
+                html.Div(
+                    children=[
+                        html.Div(children="Date range", className="menu-title"),
+                        dcc.Dropdown(
+                            id="daterange-filter1",
                             options=[
                                 {"label": "Bar", "value": "bar"}, {"label":"Pie", "value": "pie"}
                             ],
@@ -68,83 +68,122 @@ layout = html.Div(
                             className="dropdown",
                         ),
                     ], 
-                    className="dropdown-div"
-                ),
-                html.Div(
-                    children=[
-                        html.Div(children="Date range", className="menu-title"),
-                        dcc.Dropdown(
-                            id="chart-filter2",
-                            options=[
-                                {"label": "Bar", "value": "bar"}, {"label":"Pie", "value": "pie"}
-                            ],
-                            value="bar",
-                            clearable=False,
-                            className="dropdown2",
-                        ),
-                    ], 
                     className="dropdown-div2"
                 ),
+
+        dbc.Card(
+            [
+                dbc.CardBody(
+                    children=[
                 
                 dcc.Graph(
-                        id='artwork_gender',
-                        figure=fig,
+                        id='artwork_gender1',
                         className='card-header'
                     ),
-                    html.P('Note that an artist may work on more than one piece hence why proportion may not sum to current number of artworks')
+                    html.P('Note that an artist may work on more than one piece hence why proportion may not sum to current number of artworks. This pie chart represents the number of times a Male or Female has worked on a piece of artwork')
                     ]
                 ), 
 
                 dbc.CardHeader(
-                    id='artwork-gender-card-header',
+                    id='artwork-gender-card-header1',
                     className='card-header'
                 )
             ],
             className='card'
         ),
+        html.Div(
+            children=[
+                        html.Div(children="Department", className="menu-title"),
+                        dcc.Dropdown(
+                            id="department-filter2",
+                            options=
+                                department_vals
+                            ,
+                            value="All departments",
+                            clearable=False,
+                            className="dropdown",
+                        ),
+                    ], 
+                    className="dropdown-div2"
+                ),
+        html.Div(
+                    children=[
+                        html.Div(children="Date range", className="menu-title"),
+                        dcc.Dropdown(
+                            id="daterange-filter2",
+                            options=[
+                                {"label": "Bar", "value": "bar"}, {"label":"Pie", "value": "pie"}
+                            ],
+                            value="bar",
+                            clearable=False,
+                            className="dropdown",
+                        ),
+                    ], 
+                    className="dropdown-div2"
+                ),
         dbc.Card(
             [
                 dbc.CardBody(
                     children=[
-                        html.Div(children=[
-                        html.Div(children="Department", className="menu-title"),
-                        dcc.Dropdown(
-                            id="chart-filter",
-                            options=[
-                                {"label": "Bar", "value": "bar"}, {"label":"Pie", "value": "pie"}
-                            ],
-                            value="bar",
-                            clearable=False,
-                            className="dropdown3",
-                        ),
-                    ], 
-                    className="dropdown-div3"
-                ),
-                html.Div(
-                    children=[
-                        html.Div(children="Date range", className="menu-title"),
-                        dcc.Dropdown(
-                            id="chart-filter2",
-                            options=[
-                                {"label": "Bar", "value": "bar"}, {"label":"Pie", "value": "pie"}
-                            ],
-                            value="bar",
-                            clearable=False,
-                            className="dropdown4",
-                        ),
-                    ], 
-                    className="dropdown-div4"
-                ),
+                
                 dcc.Graph(
-                id='artwork_nationality',
-                figure=nationality_quantity
-            ), ]),
+                        id='artwork_nationality1',
+                        className='card-header'
+                    ),
+                    ]
+                ), 
 
                 dbc.CardHeader(
-                    id='artwork-nationality-card-header'
+                    id='artwork-nationality-card-header1',
+                    className='card-header'
                 )
             ],
             className='card'
-        )
+        ),
     ]
 )
+
+@callback(
+    Output(component_id='artwork_gender1', component_property='figure'),
+    Input(component_id='department-filter1', component_property='value'))
+
+def update_graphs(department):
+    """Creates the figure to be displayed based on the drop down selections"""
+
+    if department == 'All departments':
+        new_df = artwork_demographs
+        department = 'All departments'
+    else:
+        new_df = artwork_demographs[artwork_demographs["department"] == f'{department}']
+
+    male_artists = new_df[new_df['gender'] == 'Male']
+    female_artists = new_df[new_df['gender'] == 'Female']
+    m_f_list = ['Male', 'Female']
+
+    m_f_artists = [len(male_artists), len(female_artists)] 
+
+    fig = px.pie(values=m_f_artists, names=m_f_list, title='Proportion of artwork by gender')
+
+    return fig
+
+
+@callback(
+    Output(component_id='artwork_nationality1', component_property='figure'),
+    Input(component_id='department-filter2', component_property='value'))
+
+def update_graphs(department):
+    """Creates the figure to be displayed based on the drop down selections"""
+
+    if department == 'All departments':
+        artwork_nationality = artwork_demographs.groupby('nationality').count()
+        department = 'All departments'
+    else:
+        artwork_nationality = artwork_demographs[artwork_demographs['department'] == f'{department}'].groupby('nationality').count()
+
+    nationality_quantity = px.bar(
+                    artwork_nationality,
+                    x=artwork_nationality.index,
+                    y='artist_id', 
+                    color=artwork_nationality.index)
+
+    return nationality_quantity

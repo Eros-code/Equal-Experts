@@ -1,0 +1,62 @@
+.main-header {
+  margin: auto;
+  text-align: center;
+  background-color: #ffffff;
+  width: 800px;
+  padding: 5px;
+}
+.card {
+  width: 70rem;
+  margin: auto;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4);
+  transition: 0.3s;
+  padding: 10px;
+  color: white;
+  background-color: #9ad31e;
+}
+
+/* On mouse-over, add a deeper shadow */
+.card:hover {
+  box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.4);
+}
+
+.card-header {
+  text-align: center;
+}
+
+body {
+  /* background: linear-gradient(to top, #336699 28%, #534d57 100%); */
+  background: white;
+}
+
+.page-header {
+  background-color: #fff700;
+  padding: 5px;
+  margin: auto;
+  text-align: center;
+  width: 70rem;
+}
+
+.dropdown-div {
+  width: 10rem;
+  margin: auto;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 20rem;
+  padding: 2rem 1rem;
+  background-color: #1655c2;
+  /* background-color: rgb(2, 15, 53); */
+  color: #ffffff;
+}
+
+.content {
+  margin-left: 20rem;
+  margin-right: 2rem;
+  padding: 2rem 1rem;
+  color: black;
+}
