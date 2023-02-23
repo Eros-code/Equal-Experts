@@ -15,13 +15,21 @@ load_figure_template('LITERA')
 
 image_path='assets/MoMA.png'
 
+## initialising dash app:
 
 app = Dash(name=__name__, use_pages=True, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.LITERA])
+
+## get list of pages:
 pages = list(dash.page_registry.values())
 
+## initializing app layout
 app.layout=html.Div(
+
+    ## navigation provided as a sidebar of the page for easy and appealing access to pages
     children=[
         html.Div(
+
+            ## names of pages provided as the links for navigation and formatting applied
             children=[
                 html.H2("MoMA Dashboard", className="display-4"),
                 html.P(
@@ -38,6 +46,8 @@ app.layout=html.Div(
             ],
             className='sidebar',
         ),
+
+        ## get the content for the each individual page and display on the side of sidebar
         html.Div(
             children=dash.page_container,
             className='content'
