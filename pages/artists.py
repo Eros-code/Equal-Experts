@@ -12,6 +12,19 @@ departments = db.q("SELECT DISTINCT department from artwork")
 department_vals = [{"label":str(i[0]), "value":str(i[0])} for i in departments.values]
 department_vals.append({"label":"All departments", "value":"All departments"})
 
+date_range = [{"label":f'{i} to {i+19}', "value":i} for i in range(1920, 2000, 20)]
+date_range.append({"label":"currently active", "value":0})
+date_range.append({"label":"inactive for 5 years", "value":5})
+date_range.append({"label":"inactive for 10 years", "value":10})
+date_range.append({"label":"inactive for 15 years", "value":15})
+date_range.append({"label":"All artists to date", "value":"All artists to date"})
+
+
+artist_art = db.q("""SELECT t1.*, t2.department FROM artist AS t1
+            JOIN artwork AS t2
+            ON t1.artist_id = t2.artist_id
+            """)
+
 ###### Selecting all rows from the artist table in the database ##########
 
 artist_db = db.q("""SELECT * FROM artist""")
@@ -55,10 +68,8 @@ layout = html.Div(
                         html.Div(children="Date range", className="menu-title"),
                         dcc.Dropdown(
                             id="daterange-filter3",
-                            options=[
-                                {"label": "Bar", "value": "bar"}, {"label":"Pie", "value": "pie"}
-                            ],
-                            value="bar",
+                            options=date_range,
+                            value="All artists to date",
                             clearable=False,
                             className="dropdown",
                         ),
@@ -105,10 +116,8 @@ layout = html.Div(
                         html.Div(children="Date range", className="menu-title"),
                         dcc.Dropdown(
                             id="daterange-filter4",
-                            options=[
-                                {"label": "Bar", "value": "bar"}, {"label":"Pie", "value": "pie"}
-                            ],
-                            value="bar",
+                            options=date_range,
+                            value="All artists to date",
                             clearable=False,
                             className="dropdown",
                         ),
@@ -138,26 +147,31 @@ layout = html.Div(
 
 @callback(
     Output(component_id='artists_gender1', component_property='figure'),
-    Input(component_id='department-filter3', component_property='value'))
+    [Input(component_id='department-filter3', component_property='value')], Input(component_id='daterange-filter3', component_property='value'))
 
-def update_graphs(department):
+def update_graphs(department, daterange):
     """Creates the figure to be displayed based on the drop down selections"""
     
 
     if department == 'All departments':
-        new_df = db.q("""SELECT t1.*, t2.department FROM artist AS t1
-            JOIN artwork AS t2
-            ON t1.artist_id = t2.artist_id
-            """)
-        new_df = new_df.drop_duplicates(subset='artist_name', keep="last")
+        new_df = artist_art.drop_duplicates(subset='artist_name', keep="last")
         department = 'All departments'
     else:
-        artist_dep_db = db.q("""SELECT t1.*, t2.department FROM artist AS t1
-            JOIN artwork AS t2
-            ON t1.artist_id = t2.artist_id
-            """)
-        new_df = artist_dep_db.drop_duplicates(subset='artist_name', keep="last")
+        new_df = artist_art.drop_duplicates(subset='artist_name', keep="last")
         new_df = new_df[new_df["department"] == f'{department}']
+
+    if daterange == "All artists to date":
+        new_df = new_df
+    elif daterange == 5:
+        new_df = new_df[new_df['year_end'] >= max(new_df['year_end']) - 5]
+    elif daterange == 10:
+        new_df = new_df[new_df['year_end'] >= max(new_df['year_end']) - 10]
+    elif daterange == 15:
+        new_df = new_df[new_df['year_end'] >= max(new_df['year_end']) - 15]
+    elif daterange == 0:
+        new_df = new_df[new_df['year_end'] == 0]
+    else:
+        new_df = new_df[(new_df['year_start'] >= daterange) & (new_df['year_start'] <= daterange+19)]
 
     male_artists = new_df[new_df['gender'] == 'Male']
     female_artists = new_df[new_df['gender'] == 'Female']
@@ -171,9 +185,9 @@ def update_graphs(department):
 
 @callback(
     Output(component_id='artists_nationality1', component_property='figure'),
-    Input(component_id='department-filter4', component_property='value'))
+    [Input(component_id='department-filter4', component_property='value'), Input('daterange-filter4', 'value')])
 
-def update_graphs(department):
+def update_graphs(department, daterange):
     """Creates the figure to be displayed based on the drop down selections"""
     
 
@@ -191,7 +205,24 @@ def update_graphs(department):
             ON t1.artist_id = t2.artist_id
             """)
         new_df = artist_dep_db.drop_duplicates(subset='artist_name', keep="last")
-        artist_nationality = new_df[new_df['department'] == f"{department}"].groupby('nationality').count()
+        new_df = new_df[new_df['department'] == f"{department}"]
+        artist_nationality = new_df.groupby('nationality').count()
+
+    if daterange == "All artists to date":
+        new_df = new_df
+    elif daterange == 5:
+        new_df = new_df[new_df['year_end'] >= max(new_df['year_end']) - 5]
+    elif daterange == 10:
+        new_df = new_df[new_df['year_end'] >= max(new_df['year_end']) - 10]
+    elif daterange == 15:
+        new_df = new_df[new_df['year_end'] >= max(new_df['year_end']) - 15]
+    elif daterange == 0:
+        new_df = new_df[new_df['year_end'] == 0]
+    else:
+        new_df = new_df[(new_df['year_start'] >= daterange) & (new_df['year_start'] <= daterange+19)]
+
+    artist_nationality = new_df.groupby('nationality').count()
+        
 
     nationality_quantity = px.bar(
                     artist_nationality,

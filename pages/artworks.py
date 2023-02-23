@@ -21,7 +21,14 @@ departments = db.q("SELECT DISTINCT department from artwork")
 department_vals = [{"label":str(i[0]), "value":str(i[0])} for i in departments.values]
 department_vals.append({"label":"All departments", "value":"All departments"})
 
-### Artworks created by nationality
+### creating a list of date ranges for which artworks were completed:
+
+date_range = [{"label":f'{i} to {i+3}', "value":i} for i in range(2000, 2020, 4)]
+date_range.append({"label":f'{2020} onward', "value":2020})
+date_range.append({"label": 'past 15 years', "value":15})
+date_range.append({"label":'past 10 years', "value":10})
+date_range.append({"label":'past 5 years', "value":5})
+date_range.append({"label":'since earliest completed', "value":'since earliest completed'})
 
 
 layout = html.Div(
@@ -60,10 +67,8 @@ layout = html.Div(
                         html.Div(children="Date range", className="menu-title"),
                         dcc.Dropdown(
                             id="daterange-filter1",
-                            options=[
-                                {"label": "Bar", "value": "bar"}, {"label":"Pie", "value": "pie"}
-                            ],
-                            value="bar",
+                            options=date_range,
+                            value='since earliest completed',
                             clearable=False,
                             className="dropdown",
                         ),
@@ -111,10 +116,8 @@ layout = html.Div(
                         html.Div(children="Date range", className="menu-title"),
                         dcc.Dropdown(
                             id="daterange-filter2",
-                            options=[
-                                {"label": "Bar", "value": "bar"}, {"label":"Pie", "value": "pie"}
-                            ],
-                            value="bar",
+                            options=date_range,
+                            value='since earliest completed',
                             clearable=False,
                             className="dropdown",
                         ),
@@ -145,9 +148,9 @@ layout = html.Div(
 
 @callback(
     Output(component_id='artwork_gender1', component_property='figure'),
-    Input(component_id='department-filter1', component_property='value'))
+    [Input(component_id='department-filter1', component_property='value'), Input('daterange-filter1', 'value')])
 
-def update_graphs(department):
+def update_graphs(department, daterange):
     """Creates the figure to be displayed based on the drop down selections"""
 
     if department == 'All departments':
@@ -155,6 +158,20 @@ def update_graphs(department):
         department = 'All departments'
     else:
         new_df = artwork_demographs[artwork_demographs["department"] == f'{department}']
+
+    if daterange == "since earliest completed":
+        new_df = new_df
+    elif daterange == 5:
+        new_df = new_df[new_df['year_completed'] >= max(new_df['year_completed']) - 5]
+    elif daterange == 10:
+        new_df = new_df[new_df['year_completed'] >= max(new_df['year_completed']) - 10]
+    elif daterange == 15:
+        new_df = new_df[new_df['year_completed'] >= max(new_df['year_completed']) - 15]
+    elif daterange == 2020:
+        new_df = new_df[new_df['year_completed'] >= 2020]
+    else:
+        new_df = new_df[(new_df['year_completed'] >= daterange) & (new_df['year_completed'] <= daterange+3)]
+
 
     male_artists = new_df[new_df['gender'] == 'Male']
     female_artists = new_df[new_df['gender'] == 'Female']
@@ -169,16 +186,31 @@ def update_graphs(department):
 
 @callback(
     Output(component_id='artwork_nationality1', component_property='figure'),
-    Input(component_id='department-filter2', component_property='value'))
+    [Input(component_id='department-filter2', component_property='value'), Input('daterange-filter2', 'value')])
 
-def update_graphs(department):
+def update_graphs(department, daterange):
     """Creates the figure to be displayed based on the drop down selections"""
 
     if department == 'All departments':
+        artwork_dep = artwork_demographs
         artwork_nationality = artwork_demographs.groupby('nationality').count()
         department = 'All departments'
     else:
+        artwork_dep = artwork_demographs[artwork_demographs['department'] == f'{department}']
         artwork_nationality = artwork_demographs[artwork_demographs['department'] == f'{department}'].groupby('nationality').count()
+
+    if daterange == "since earliest completed":
+        artwork_nationality = artwork_nationality
+    elif daterange == 5:
+        artwork_nationality = artwork_dep[artwork_dep['year_completed'] >= max(artwork_dep['year_completed']) - 5].groupby('nationality').count()
+    elif daterange == 10:
+        artwork_nationality = artwork_dep[artwork_dep['year_completed'] >= max(artwork_dep['year_completed']) - 10].groupby('nationality').count()
+    elif daterange == 15:
+        artwork_nationality = artwork_dep[artwork_dep['year_completed'] >= max(artwork_dep['year_completed']) - 15].groupby('nationality').count()
+    elif daterange == 2020:
+        artwork_nationality = artwork_dep[artwork_dep['year_completed'] >= 2020].groupby('nationality').count()
+    else:
+        artwork_nationality = artwork_dep[(artwork_dep['year_completed'] >= daterange) & (artwork_dep['year_completed'] >= daterange+3)].groupby('nationality').count()
 
     nationality_quantity = px.bar(
                     artwork_nationality,
