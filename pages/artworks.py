@@ -5,11 +5,14 @@ from sql_connect import db_connect
 import pandas as pd
 import numpy as np
 import dash_bootstrap_components as dbc
+
+## adding artworks page to registry
 dash.register_page(__name__)
 
+## connecting to psql database
 db = db_connect()
 
-###### Selecting all rows from the artist table in the database ##########
+###### Selecting all rows from the artist table in the database and join to artworks table ##########
 no_untitled = db.q("""SELECT * FROM artwork WHERE title NOT LIKE '%Untitled%'""")
 artwork_number = len(no_untitled.drop_duplicates(subset='title', keep="last"))
 artist_db = db.q("""SELECT * FROM artist""")
@@ -30,8 +33,9 @@ date_range.append({"label":'past 10 years', "value":10})
 date_range.append({"label":'past 5 years', "value":5})
 date_range.append({"label":'since earliest completed', "value":'since earliest completed'})
 
-
+## initialising layout of page
 layout = html.Div(
+    ## page header
     children=[
         html.Div(
             children=[
@@ -46,6 +50,8 @@ layout = html.Div(
                 ),
             ], 
             className='page-header'
+
+        ## first department drop down menu
         ),
         html.Div(
             children=[
@@ -62,6 +68,8 @@ layout = html.Div(
                     ], 
                     className="dropdown-div2"
                 ),
+
+                ## first date range drop down menu
                 html.Div(
                     children=[
                         html.Div(children="Date range", className="menu-title"),
@@ -75,12 +83,14 @@ layout = html.Div(
                     ], 
                     className="dropdown-div2"
                 ),
-
+        
+        ## card to contain content of graph and provide more appealing layout
         dbc.Card(
             [
                 dbc.CardBody(
                     children=[
                 
+                ## graph placeholder referenced in callback
                 dcc.Graph(
                         id='artwork_gender1',
                         className='card-header'
@@ -96,6 +106,7 @@ layout = html.Div(
             ],
             className='card'
         ),
+        ## second drop down menu for department for nationality graph
         html.Div(
             children=[
                         html.Div(children="Department", className="menu-title"),
@@ -111,6 +122,8 @@ layout = html.Div(
                     ], 
                     className="dropdown-div2"
                 ),
+
+        ## second drop down menu for date range for nationality graph
         html.Div(
                     children=[
                         html.Div(children="Date range", className="menu-title"),
@@ -124,6 +137,8 @@ layout = html.Div(
                     ], 
                     className="dropdown-div2"
                 ),
+
+        ## second card to hold nationality graph
         dbc.Card(
             [
                 dbc.CardBody(
@@ -146,6 +161,10 @@ layout = html.Div(
     ]
 )
 
+## first callback which takes input from both first department and date range dropdowns
+## using the inputs we modify the dataframe to suit the filters accordingly
+## output is shown on the graph by referencing it's id: artwork_gender1
+
 @callback(
     Output(component_id='artwork_gender1', component_property='figure'),
     [Input(component_id='department-filter1', component_property='value'), Input('daterange-filter1', 'value')])
@@ -153,11 +172,15 @@ layout = html.Div(
 def update_graphs(department, daterange):
     """Creates the figure to be displayed based on the drop down selections"""
 
+    ## updates the data used in the graph depending on which department is selected
     if department == 'All departments':
         new_df = artwork_demographs
         department = 'All departments'
     else:
         new_df = artwork_demographs[artwork_demographs["department"] == f'{department}']
+
+    ## updates the data used in the graph depending on which date range is selected
+    ## also takes into account the department since it uses the same df 
 
     if daterange == "since earliest completed":
         new_df = new_df
@@ -172,6 +195,7 @@ def update_graphs(department, daterange):
     else:
         new_df = new_df[(new_df['year_completed'] >= daterange) & (new_df['year_completed'] <= daterange+3)]
 
+    ## selecting male and female artists and their counts stored in a list
 
     male_artists = new_df[new_df['gender'] == 'Male']
     female_artists = new_df[new_df['gender'] == 'Female']
@@ -181,8 +205,14 @@ def update_graphs(department, daterange):
 
     fig = px.pie(values=m_f_artists, names=m_f_list, title='Proportion of artwork by gender')
 
+    ## return fig which will be used as the output for the graph
     return fig
 
+
+## second callback which takes input from both second department and date range dropdowns
+## using the inputs we modify the dataframe to suit the filters accordingly
+## output is shown on the graph by referencing it's id: artwork_nationality1
+## working in a similar fashion to 1st callback function
 
 @callback(
     Output(component_id='artwork_nationality1', component_property='figure'),
