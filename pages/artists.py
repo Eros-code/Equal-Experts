@@ -255,6 +255,9 @@ def update_graphs(department, daterange):
                     artist_nationality,
                     x=artist_nationality.index,
                     y='artist_name', 
+                    title='Proportion of artists by nationality',
                     color=artist_nationality.index)
+
+    nationality_quantity.update_layout(yaxis_title="artist count")
 
     return nationality_quantity
